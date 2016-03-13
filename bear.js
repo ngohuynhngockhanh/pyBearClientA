@@ -1,10 +1,16 @@
-var omx 	= require('omx-manager');
-var socket 	= require('socket.io-client')('http://127.0.0.1:1234');
+var Mpg 	= require('mpg123');
+var socket 	= require('socket.io-client')('http://127.0.0.1:1234/bear');
 var php		= require('phpjs');
 var fs		= require('fs');
 var http	= require('http');
+
+//constant
 var MP3_DIR	= './mp3';
 var DEBUG	= true;
+var ROOMID	= "BearNo1";
+
+//config
+var player 	= new Mpg();
 
 
 //download function
@@ -22,10 +28,10 @@ var download = function(url, dest, cb) {
 };
 
 //play music
-var playMusic = function(filename) {
-	omx.stop();
-	Debug("play " + filename);
-	omx.play(filename);
+var playMusic = function(path) {	
+	player.stop();
+	Debug("play " + path);
+	player.play(path);
 }
 
 //var Debug function
@@ -37,19 +43,17 @@ var Debug = function(data) {
 
 socket.on('connect', function(){
 	Debug("connected");
+	socket.emit("joinRoom", {roomID: ROOMID});
 });
 socket.on('play', function(data){
 	Debug("play");
 	Debug(data);
 	if (phpjs.isset(data['url'])) {
-		var filename = phpjs.basename(data['url']);
-		var path = MP3_DIR + '/' + filename;
-		download(data['url'], path, function() {
-			playMusic(path);
-		});
+		path = data['url'];
+		playMusic(path);
 	}
 });
 socket.on('disconnect', function(){
 	Debug("disconnect");
-	omx.stop();
+	player.stop();
 });
