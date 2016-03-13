@@ -11,6 +11,7 @@ var ROOMID	= "BearNo1";
 
 //config
 var player 	= new Mpg();
+player.volume(100);
 
 
 //download function
