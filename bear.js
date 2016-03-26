@@ -54,6 +54,12 @@ socket.on('play', function(data){
 		playMusic(path);
 	}
 });
+
+socket.on('setVolume', function(data) {
+	var volume = phpjs.intval(data['volume']);
+	player.volume(volume);
+});
+
 socket.on('disconnect', function(){
 	Debug("disconnect");
 	player.stop();
