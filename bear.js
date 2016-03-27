@@ -43,10 +43,13 @@ var playMusicFromPath = function(path) {
 var playMusic = function(obj) {	
 	var path 	= obj['path'];
 	var sid		= obj['sid'];
+	var uid		= obj['uid'];
 	//function
 	var formatObject = function(obj) {
 		return {
-			sid: sid,
+			sid: obj.sid,
+			uid: obj.uid,
+			'delete': false,
 			extra: obj
 		};
 	}
@@ -93,7 +96,8 @@ var playMusic = function(obj) {
 							sid : obj.sid 
 						}, {
 							$set: {
-								"extra.localPath": localPath
+								"extra.localPath": localPath,
+								'delete'		 : false,
 							}
 						}, function(err, result) {
 							Debug("Downloaded!");
@@ -152,12 +156,8 @@ socket.on('play', function(data){
 	Debug("play");
 	Debug(data);
 	if (phpjs.isset(data['url'])) {
-		var path = data['url'];
-		var sid  = data['sid'];
-		playMusic({
-			path: path,
-			sid:  sid
-		});
+		data['path'] = data['url'];
+		playMusic(data);
 	}
 });
 
