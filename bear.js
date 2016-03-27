@@ -1,13 +1,17 @@
-var Mpg 	= require('mpg123');
-var socket 	= require('socket.io-client')('http://127.0.0.1:1234/bear');
-var php		= require('phpjs');
-var fs		= require('fs');
-var http	= require('http');
+var Mpg 		= require('mpg123');
+var socket 		= require('socket.io-client')('http://127.0.0.1:1234/bear');
+var php			= require('phpjs');
+var fs			= require('fs');
+var http		= require('http');
+var MongoClient = require('mongodb').MongoClient,
+	assert 		= require('assert');
+var Download = require('download');
 
 //constant
-var MP3_DIR	= './mp3';
-var DEBUG	= true;
-var ROOMID	= "BearNo1";
+const MP3_DIR	= './mp3';
+const DEBUG		= true;
+const ROOMID	= "BearNo1";
+const MONGO_URL	= "mongodb://localhost:27017/pyBearClient";
 
 //config
 var player 	= new Mpg();
@@ -29,10 +33,108 @@ var download = function(url, dest, cb) {
 };
 
 //play music
-var playMusic = function(path) {	
+var playMusicFromPath = function(path) {
 	player.stop();
-	Debug("play " + path);
-	player.play(path);
+	if (path != "") {
+		Debug("play " + path);
+		player.play(path);
+	}	
+}
+var playMusic = function(obj) {	
+	var path 	= obj['path'];
+	var sid		= obj['sid'];
+	//function
+	var formatObject = function(obj) {
+		return {
+			sid: sid,
+			extra: obj
+		};
+	}
+	//find story
+	var findStorys = function(db, callback) {
+		// Get the documents collection 
+		var collection = db.collection('storyMP3');
+		// Find some documents 
+		collection.find({
+			'sid': sid
+		}).toArray(function(err, docs) {
+			callback(docs);
+		});
+	}
+	
+	//insert story
+	var insertStory = function(db, callback) {
+		// Get the documents collection 
+		var collection = db.collection('storyMP3');
+		collection.insert(formatObject(obj), function(err, result) {
+			Debug("Inserted");
+			callback(result);
+		});
+	}
+	
+	//update story
+	var updateStory = function(oldObj, newObj, db, callback) {
+		var collection = db.collection('storyMP3');
+		var path = '';
+		if (oldObj.extra.path != newObj.extra.path || !oldObj.extra.localPath || !fs.accessSync(oldObj.extra.localPath)) {
+			var url = newObj.extra.path;
+			var url_explode = phpjs.explode("/", url);
+			url_explode[url_explode.length - 1] = phpjs.urlencode(url_explode[url_explode.length - 1]);
+			url = phpjs.implode("/", url_explode);
+			path = url;
+			new Download({mode: '755'})
+				.get(url)
+				.dest(MP3_DIR)
+				.run(function (err, files) {
+					Debug(err);
+					if (err == null) {
+						var localPath = MP3_DIR + '/' + url.substring(url.lastIndexOf('/')+1);
+						collection.updateOne({
+							sid : obj.sid 
+						}, {
+							$set: {
+								"extra.localPath": localPath
+							}
+						}, function(err, result) {
+							Debug("Downloaded!");
+							callback(url);
+						});
+					} else {
+						callback(url);
+					}
+				});
+		} else {
+			callback(oldObj.extra.localPath);
+			path = oldObj.extra.localPath;
+		}
+		playMusicFromPath(path);
+	}
+	
+	//setup
+	/**/
+	// Use connect method to connect to the Server 
+	MongoClient.connect(MONGO_URL, function(err, db) {
+		Debug("Connected correctly to server");
+		findStorys(db, function(docs) {
+			if (docs.length > 0) {
+				Debug(docs);
+				Debug("Found");
+				updateStory(docs[0], formatObject(obj), db, function(path) {
+					db.close();
+				});
+			} else {
+				Debug("not found");
+				insertStory(db, function(result) {
+					Debug(result);
+					var ops = result.ops;
+					
+					updateStory({extra: {path:""}}, ops[0], db, function(path) {
+						db.close();
+					});
+				});
+			}			
+		});
+	});
 }
 
 //var Debug function
@@ -50,8 +152,12 @@ socket.on('play', function(data){
 	Debug("play");
 	Debug(data);
 	if (phpjs.isset(data['url'])) {
-		path = data['url'];
-		playMusic(path);
+		var path = data['url'];
+		var sid  = data['sid'];
+		playMusic({
+			path: path,
+			sid:  sid
+		});
 	}
 });
 
