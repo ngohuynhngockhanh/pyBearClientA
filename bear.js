@@ -6,6 +6,7 @@ var http		= require('http');
 var MongoClient = require('mongodb').MongoClient,
 	assert 		= require('assert');
 var Download = require('download');
+var fileExists = require('file-exists');
 
 //constant
 const MP3_DIR	= './mp3';
@@ -79,7 +80,7 @@ var playMusic = function(obj) {
 	var updateStory = function(oldObj, newObj, db, callback) {
 		var collection = db.collection('storyMP3');
 		var path = '';
-		if (oldObj.extra.path != newObj.extra.path || !oldObj.extra.localPath || !fs.accessSync(oldObj.extra.localPath)) {
+		if (oldObj.extra.path != newObj.extra.path || !oldObj.extra.localPath || !fileExists(oldObj.extra.localPath)) {
 			var url = newObj.extra.path;
 			var url_explode = phpjs.explode("/", url);
 			url_explode[url_explode.length - 1] = phpjs.urlencode(url_explode[url_explode.length - 1]);
