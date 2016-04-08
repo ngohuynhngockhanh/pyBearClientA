@@ -7,6 +7,13 @@ var MongoClient = require('mongodb').MongoClient,
 	assert 		= require('assert');
 var Download = require('download');
 var fileExists = require('file-exists');
+var five = require("johnny-five");
+var Raspi = require("raspi-io");
+var board = new five.Board({
+		io: new Raspi(),
+		repl: false,
+		debug: false,
+	});
 
 //constant
 const MP3_DIR	= './mp3';
@@ -148,7 +155,11 @@ var Debug = function(data) {
 		console.log(data);
 }
 
+/* Johnny-five Side */
+board.on("ready", function() {
+});
 
+/* Socket side */
 socket.on('connect', function(){
 	Debug("connected");
 	socket.emit("joinRoom", {roomID: ROOMID});
