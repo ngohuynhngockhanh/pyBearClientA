@@ -1,16 +1,39 @@
-var Mpg 		= require('mpg123');
 var socket 		= require('socket.io-client')('http://127.0.0.1:1234/bear');
 var php			= require('phpjs');
 var fs			= require('fs');
 var http		= require('http');
-var MongoClient = require('mongodb').MongoClient;
-var five = require("johnny-five");
-var Raspi = require("raspi-io");
-var board = new five.Board({
-		io: new Raspi(),
-		repl: false,
-		debug: false,
+var five 		= require("johnny-five");
+var Raspi 		= require("raspi-io");
+var board 		= new five.Board({
+					io: new Raspi(),
+					repl: false,
+					debug: false,
+				});
+
+/* Johnny-five Side */
+board.on("ready", function() {
+	var playButton = new five.Button({
+		pin: 27,
+		isPullup: true,
+		holdtime: 1000
 	});
+	
+	
+	
+	playButton.on("hold", function(value) {
+		Debug("button down hold");
+		bear.togglePlaylist();
+	});
+	
+	playButton.on("down", function() {
+		if (bear.isPlayingPlaylist()) {
+			Debug("next song");
+			bear.nextSongPlaylist();
+		}		
+	});
+});
+				
+//lib
 var Bear		= require('./lib/bear');
 
 
@@ -18,8 +41,8 @@ var Bear		= require('./lib/bear');
 const DEBUG		= true;
 
 //config
-var player 	= new Mpg();
-var bear	= new Bear(player, MongoClient);
+
+var bear	= new Bear();
 
 
 
@@ -29,9 +52,7 @@ var Debug = function(data) {
 		console.log(data);
 }
 
-/* Johnny-five Side */
-board.on("ready", function() {
-});
+
 
 /* Socket side */
 socket.on('connect', function(){
@@ -54,4 +75,19 @@ socket.on('setVolume', function(data) {
 socket.on('disconnect', function(){
 	Debug("disconnect");
 	bear.stop();
+});
+
+socket.on('updatePlaylist', function(data) {
+	Debug("updatePlaylist");
+	bear.updatePlaylist(data['uid'], data['playlist']);
+});
+
+
+//bear handle
+bear.on('onCompleted', function() {
+	Debug("script side - bear has just played song!")
+});
+
+bear.on('onPlayMusic', function(obj) {
+	Debug("playing " + obj.path);
 });
