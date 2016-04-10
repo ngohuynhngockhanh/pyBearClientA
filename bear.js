@@ -24,7 +24,7 @@ board.on("ready", function() {
 
 	//define button
 	var shutdownButton = new five.Button({
-		pin: 27,
+		pin: 4,
 		isPullup: true,
 		holdtime: 2000
 	});
@@ -51,6 +51,7 @@ board.on("ready", function() {
 	//shutdownButton
 	shutdownButton.on("hold", function() {
 		Debug("shutdown the bear");
+		run_cmd( "mongod", ["--shutdown"], function(text) { console.log (text) });//shutdown the bear
 		run_cmd( "init", ["0"], function(text) { console.log (text) });//shutdown the bear
 	});
 });
