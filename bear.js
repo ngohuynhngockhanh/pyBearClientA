@@ -10,8 +10,24 @@ var board 		= new five.Board({
 					debug: false,
 				});
 
+function run_cmd(cmd, args, callBack ) {
+    var spawn = require('child_process').spawn;
+    var child = spawn(cmd, args);
+    var resp = "";
+
+    child.stdout.on('data', function (buffer) { resp += buffer.toString() });
+    child.stdout.on('end', function() { callBack (resp) });
+} // ()				
+				
 /* Johnny-five Side */
 board.on("ready", function() {
+
+	//define button
+	var shutdownButton = new five.Button({
+		pin: 27,
+		isPullup: true,
+		holdtime: 2000
+	});
 	var playButton = new five.Button({
 		pin: 27,
 		isPullup: true,
@@ -19,7 +35,7 @@ board.on("ready", function() {
 	});
 	
 	
-	
+	//playbutton
 	playButton.on("hold", function(value) {
 		Debug("button down hold");
 		bear.togglePlaylist();
@@ -30,6 +46,12 @@ board.on("ready", function() {
 			Debug("next song");
 			bear.nextSongPlaylist();
 		}		
+	});
+	
+	//shutdownButton
+	shutdownButton.on("hold", function() {
+		Debug("shutdown the bear");
+		run_cmd( "init", ["0"], function(text) { console.log (text) });//shutdown the bear
 	});
 });
 				
