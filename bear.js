@@ -36,9 +36,18 @@ board.on("ready", function() {
 	
 	
 	//playbutton
+	var isHold = false;
 	playButton.on("hold", function(value) {
+		if (!isHold) {
+			bear.togglePlaylist();
+			isHold = true;
+		}
 		Debug("button down hold");
-		bear.togglePlaylist();
+	});
+	
+	playButton.on("up", function() {
+		Debug("button up");
+		isHold = false;
 	});
 	
 	playButton.on("down", function() {
