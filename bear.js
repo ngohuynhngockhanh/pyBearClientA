@@ -1,4 +1,4 @@
-var socket 		= require('socket.io-client')('http://127.0.0.1:1234/bear');
+var socket 		= require('socket.io-client')('http://ourshark.co:8000/bear');
 var php			= require('phpjs');
 var fs			= require('fs');
 var http		= require('http');
@@ -21,7 +21,7 @@ function run_cmd(cmd, args, callBack ) {
 				
 /* Johnny-five Side */
 board.on("ready", function() {
-
+	console.log("started PRi bear");
 	//define button
 	var shutdownButton = new five.Button({
 		pin: 4,
@@ -91,6 +91,12 @@ socket.on('connect', function(){
 	Debug("connected");
 	socket.emit("joinRoom", {roomID: bear.getRoomId()});
 });
+socket.on('playFromURL', function(data) {
+	Debug("play from url");
+	var url = data['url'];
+	var uid = data['uid'];
+	bear.playMusicFromPath(url);
+});
 socket.on('play', function(data){
 	Debug("play");
 	Debug(data);
@@ -120,6 +126,8 @@ bear.on('onCompleted', function() {
 	Debug("script side - bear has just played song!")
 });
 
-bear.on('onPlayMusic', function(obj) {
-	Debug("playing " + obj.path);
+bear.on('onPlayChapter', function(obj) {
+	Debug("playing Chappter (Sid " + obj.sid + ", index " + obj.index + "), path: " + obj.path);
 });
+
+console.log("started bear");
