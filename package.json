@@ -1,0 +1,33 @@
+{
+  "name": "pybearclienta",
+  "version": "1.0.0",
+  "description": "Hello World~",
+  "main": "bear.js",
+  "dependencies": {
+    "download": "^4.4.3",
+    "events": "^1.1.0",
+    "file-exists": "^1.0.0",
+    "mongodb": "^2.1.11",
+    "mpg123": "^0.1.0",
+    "omx-manager": "^0.0.3",
+    "phpjs": "^1.3.2",
+    "serialport": "^2.0.7-beta5",
+    "socket.io": "^1.4.5",
+    "socket.io-client": "^1.4.5",
+    "util": "^0.10.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ngohuynhngockhanh/pyBearClientA.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ngohuynhngockhanh/pyBearClientA/issues"
+  },
+  "homepage": "https://github.com/ngohuynhngockhanh/pyBearClientA#readme"
+}

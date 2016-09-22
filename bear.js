@@ -29,15 +29,87 @@ board.on("ready", function() {
 		holdtime: 2000
 	});
 	var playButton = new five.Button({
-		pin: 27,
+		pin: 5,
 		isPullup: true,
 		holdtime: 1000
 	});
 	
 	
+	
+	var BearIn1 = new five.Relay({
+	  pin: 0,
+	  type: "NC"
+	});
+	
+	var BearIn2 = new five.Relay({
+	  pin: 2,
+	  type: "NC"
+	}); 
+	
+	BearIn1.open();
+	BearIn2.open();
+	
+	var timeOutHeadBear = undefined;
+	
+	var stopBear = function(stopAll) {
+		BearIn1.close();
+		BearIn2.close();
+		if (stopAll)
+			if (timeOutHeadBear) {
+				clearTimeout(timeOutHeadBear)
+				bearDown(1000)
+			}
+	}
+	
+	var bearDown = function(timeout, randomMove) {
+		BearIn1.open();
+		BearIn2.close();
+		if (timeout) {
+			if (timeOutHeadBear)
+				clearTimeout(timeOutHeadBear);
+			timeOutHeadBear = setTimeout(function() {
+				
+				if (randomMove) {
+					var time = php.rand(300, 700);
+					bearUp(time, true)
+				}
+				else stopBear();
+			}, timeout);
+		}
+	}
+	
+	var bearUp = function(timeout, randomMove) {
+		BearIn1.close();
+		BearIn2.open();
+		if (timeout) {
+			if (timeOutHeadBear)
+				clearTimeout(timeOutHeadBear);
+			timeOutHeadBear = setTimeout(function() {
+				if (randomMove) {
+					var time = php.rand(400, 1000);
+					bearDown(time, true)
+				}
+				else stopBear();
+			}, timeout);
+		}
+	}
+	
+	bearUp(1000)
+	
+	//bear handle
+	bear.on('onCompleted', function() {
+		Debug("script side - bear has just played song!")
+		stopBear(true)
+	});
+
+	bear.on('onPlayChapter', function(obj) {
+		Debug("playing Chappter (Sid " + obj.sid + ", index " + obj.index + "), path: " + obj.path);
+		bearDown(1000, true)
+	});
+	
 	//playbutton
 	var isHold = false;
-	playButton.on("hold", function(value) {
+	playButton.on("hold", function() {
 		if (!isHold) {
 			bear.togglePlaylist();
 			isHold = true;
@@ -121,13 +193,5 @@ socket.on('updatePlaylist', function(data) {
 });
 
 
-//bear handle
-bear.on('onCompleted', function() {
-	Debug("script side - bear has just played song!")
-});
-
-bear.on('onPlayChapter', function(obj) {
-	Debug("playing Chappter (Sid " + obj.sid + ", index " + obj.index + "), path: " + obj.path);
-});
 
 console.log("started bear");

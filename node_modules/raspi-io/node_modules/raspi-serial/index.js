@@ -92,6 +92,7 @@ export class Serial extends Peripheral {
   }
 
   open(cb) {
+    this.validateAlive();
     if (this[isOpen]) {
       setImmediate(cb);
       return;
@@ -107,6 +108,7 @@ export class Serial extends Peripheral {
   }
 
   close(cb) {
+    this.validateAlive();
     if (!this[isOpen]) {
       setImmediate(cb);
       return;
@@ -116,6 +118,7 @@ export class Serial extends Peripheral {
   }
 
   write(data, cb) {
+    this.validateAlive();
     if (!this[isOpen]) {
       throw new Error('Attempted to write to a closed serial port');
     }
@@ -123,6 +126,7 @@ export class Serial extends Peripheral {
   }
 
   flush(cb) {
+    this.validateAlive();
     if (!this[isOpen]) {
       throw new Error('Attempted to flush a closed serial port');
     }
